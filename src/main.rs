@@ -12,8 +12,8 @@ fn main() {
     println!("{:?}", s);
 
     // queue
-    let qh = queue::init();
-    let qh = queue::enqueue(qh, 1);
-    let qh = queue::dequeue(qh);
-    println!("{:?}", qh);
+    let mut q = queue::Queue::init();
+    q.enqueue(0);
+    let i = q.dequeue();
+    println!("{}", i.unwrap());
 }

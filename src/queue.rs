@@ -1,46 +1,37 @@
 #[derive(Debug)]
 pub struct Queue {
-    key: i32,
-    before: Option<Box<Queue>>,
+    data: [i32; 256],
+    top: Option<usize>,
+    rear: Option<usize>,
 }
 
-struct QueueHead {
-    top: Option<Box<Queue>>,
-    rear: Option<Box<Queue>>,
-}
-
-pub fn init() -> QueueHead {
-    return QueueHead {
-        top: None,
-        rear: None,
-    };
-}
-
-pub fn enqueue(mut q: QueueHead, key: i32) -> QueueHead {
-    let new = Queue { key, before: None };
-    let mut w = &*q.rear.as_ref().unwrap();
-    if !q.rear.is_none() {
-        q.rear = Some(Box::new(new));
-        w.before = Some(Box::new(new));
-    } else {
-        q.rear = Some(Box::new(new));
-        q.top = Some(Box::new(new));
-    }
-    return q;
-}
-
-pub fn dequeue(q: QueueHead) -> i32 {
-    if q.top.is_none() {
-        println!("キューが空です");
-        return 0;
-    } else {
-        let w = *q.top.unwrap();
-        let key = w.key;
-        q.top = w.before;
-        if q.top.is_none() {
-            q.rear = None;
+impl Queue {
+    pub fn init() -> Queue {
+        Queue {
+            data: [0; 256],
+            top: None,
+            rear: None,
         }
-        return key;
+    }
+
+    pub fn enqueue(&mut self, i: i32) {
+        if self.top.is_none() & self.rear.is_none() {
+            self.top = Some(0);
+            self.rear = Some(0);
+        } else if self.data.len() < self.rear.unwrap() {
+            panic!("QUEUE IS FULL");
+        }
+        self.data[self.rear.unwrap()] = i;
+        self.rear = Some(self.rear.unwrap() + 1);
+    }
+
+    pub fn dequeue(&mut self) -> Result<i32, &'static str> {
+        if self.top.is_none() {
+            return Err("NO DATA");
+        }
+        let i = self.data[self.top.unwrap()];
+        self.top = Some(self.top.unwrap() + 1);
+        return Ok(i);
     }
 }
 
@@ -50,12 +41,13 @@ mod tests {
 
     #[test]
     fn test_queue() {
-        let qh = init();
-        let qh = enqueue(qh, 0);
-        assert_eq!(0, *qh.top.unwrap().key);
-        let (k, s) = dequeue(qh);
-        assert_eq!(0, k);
-        let (k, _) = dequeue(qh);
-        assert_eq!(1, k);
+        let mut queue = Queue::init();
+        queue.enqueue(0);
+        queue.enqueue(1);
+        let i = queue.dequeue().unwrap();
+        assert_eq!(0, i);
+        queue.enqueue(2);
+        let i = queue.dequeue().unwrap();
+        assert_eq!(1, i);
     }
 }
